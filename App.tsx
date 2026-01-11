@@ -69,7 +69,7 @@ const App: React.FC = () => {
   const progress = ((currentQuestionIndex + 1) / QUESTIONS.length) * 100;
 
   const handleVerifyAndStart = () => {
-    if (licenseKey.trim().toUpperCase() !== 'Q3H4') {
+    if (licenseKey.trim().toUpperCase() !== 'WY08') {
       setKeyError(true);
       return;
     }
