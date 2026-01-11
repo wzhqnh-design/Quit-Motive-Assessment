@@ -3,10 +3,12 @@ export interface Option {
   text: string;
 }
 
+export type SectionId = 'cash' | 'income' | 'execution' | 'retreat';
+
 export interface Question {
   id: number;
   section: string;
-  sectionId: 'emotion' | 'family' | 'risk' | 'value' | 'structure';
+  sectionId: SectionId;
   text: string;
   options: Option[];
 }
@@ -24,9 +26,8 @@ export interface ResultContent {
 
 export interface ScoreBreakdown {
   total: number;
-  emotion: number;
-  family: number;
-  risk: number;
-  value: number;
-  structure: number;
+  cash: number;
+  income: number;
+  execution: number;
+  retreat: number;
 }
