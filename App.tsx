@@ -202,7 +202,7 @@ const App: React.FC = () => {
                     setLicenseKey(e.target.value);
                     setKeyError(false);
                   }}
-                //  placeholder="例如：Q3H4"
+                  placeholder="授权码"
                   className={`w-full px-4 py-3 rounded-2xl border text-lg font-mono tracking-wider outline-none transition-colors ${
                     keyError ? 'border-rose-400 bg-rose-50' : 'border-slate-200 focus:border-slate-400'
                   }`}
