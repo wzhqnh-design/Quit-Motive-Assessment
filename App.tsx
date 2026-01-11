@@ -44,7 +44,6 @@ const App: React.FC = () => {
     setAnswers(prev => ({ ...prev, [questionId]: optionId }));
 
     if (currentQuestionIndex < QUESTIONS.length - 1) {
-      // Small delay for UX feeling
       setTimeout(() => {
         setCurrentQuestionIndex(prev => prev + 1);
         window.scrollTo(0, 0);
@@ -80,33 +79,18 @@ const App: React.FC = () => {
     let totalScore = 0;
     const scores: ScoreBreakdown = {
       total: 0,
-      emotion: 0,
-      family: 0,
-      risk: 0,
-      value: 0,
-      structure: 0
+      cash: 0,
+      income: 0,
+      execution: 0,
+      retreat: 0
     };
 
     QUESTIONS.forEach(q => {
       const answer = answers[q.id];
       if (!answer) return;
 
-      let points = 0;
-      
-      // SECTION 3 (Risk - Q10-Q13) uses REVERSE scoring
-      if (q.sectionId === 'risk') {
-        // A=3, B=2, C=1, D=0
-        if (answer === 'A') points = 3;
-        if (answer === 'B') points = 2;
-        if (answer === 'C') points = 1;
-        if (answer === 'D') points = 0;
-      } else {
-        // Standard Scoring: A=0, B=1, C=2, D=3
-        if (answer === 'A') points = 0;
-        if (answer === 'B') points = 1;
-        if (answer === 'C') points = 2;
-        if (answer === 'D') points = 3;
-      }
+      const pointsMap: Record<Option['id'], number> = { A: 3, B: 2, C: 1, D: 0 };
+      const points = pointsMap[answer];
 
       totalScore += points;
       scores.total = totalScore;
@@ -118,25 +102,24 @@ const App: React.FC = () => {
     // Determine Result Category
     let resultType: ResultType = 'PREPARATION_NEEDED'; // Default (Yellow)
 
-    // Red: High Risk
-    if (
+    const isHighRisk =
       totalScore >= 38 ||
-      scores.emotion >= 11 ||
-      scores.family >= 9 ||
-      scores.structure >= 7
-    ) {
-      resultType = 'HIGH_RISK';
-    } 
-    // Green: Strategic Resignation
-    else if (
+      scores.cash >= 13 ||
+      scores.income >= 13 ||
+      scores.retreat >= 7;
+
+    const isStrategic =
       totalScore <= 21 &&
-      scores.emotion <= 5 &&
-      scores.family <= 4 &&
-      scores.structure <= 3
-    ) {
+      scores.cash <= 6 &&
+      scores.income <= 6 &&
+      scores.retreat <= 3;
+
+    if (isHighRisk) {
+      resultType = 'HIGH_RISK';
+    } else if (isStrategic) {
       resultType = 'STRATEGIC_RESIGNATION';
     }
-    // Yellow is default (22-37 or safe total but high specific risk handled by first condition)
+    // Yellow is default
 
     return { type: resultType, content: RESULTS[resultType], scores };
   }, [answers, currentStep]);
@@ -155,28 +138,71 @@ const App: React.FC = () => {
               </div>
             </div>
             <h1 className="text-3xl font-bold text-center mb-4 text-slate-900">
-              你到底应不应该离职？
+              离职后生存与回撤测评
             </h1>
             <p className="text-center text-slate-500 mb-10 leading-relaxed">
-              这是一个基于20个现实维度的理性决策模型。我们不谈勇气，只谈风险、底盘与可行性。
+              这是离职系列的第二部分：它不讨论“要不要走”，只讨论走之后你能不能扛得住——现金跑道、变现速度、执行系统、回撤边界。
               <br/><br/>
-              请诚实面对内心，选择最接近真实情况的选项。
+              请按真实情况作答，别选你希望自己是的那种。
             </p>
-            
             <button 
               onClick={() => {
-                setKeyError(false);
                 setShowAuthModal(true);
+                setKeyError(false);
               }}
-              className="w-full bg-slate-900 text-white py-4 rounded-xl text-lg font-medium shadow-lg hover:bg-slate-800 transition-all flex items-center justify-center gap-2"
+              className="w-full bg-slate-900 text-white py-4 rounded-2xl font-bold text-lg hover:bg-slate-800 transition-all shadow-lg flex items-center justify-center gap-2 group"
             >
-              开始理性测评 <ArrowRight size={20} />
+              开始测评
+              <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
             </button>
-            
             <div className="mt-6 text-xs text-center text-slate-400">
               测评时间约 3-5 分钟 · 结果仅供参考
             </div>
           </div>
+
+          {/* Auth Modal */}
+          {showAuthModal && (
+            <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+              <div className="w-full max-w-md bg-white rounded-3xl shadow-2xl border border-slate-100 overflow-hidden relative">
+                <button
+                  onClick={() => setShowAuthModal(false)}
+                  className="absolute top-4 right-4 p-2 rounded-xl hover:bg-slate-100 transition-colors"
+                >
+                  <X size={18} className="text-slate-500" />
+                </button>
+                <div className="p-8">
+                  <h2 className="text-xl font-bold text-slate-900 mb-2">请输入授权码</h2>
+                  <p className="text-sm text-slate-500 mb-6">仅限购买用户使用</p>
+                  
+                  <input
+                    value={licenseKey}
+                    onChange={(e) => {
+                      setLicenseKey(e.target.value);
+                      setKeyError(false);
+                    }}
+                    placeholder="例如：Q3H4"
+                    className={`w-full px-4 py-3 rounded-2xl border text-lg font-mono tracking-wider outline-none transition-colors
+                      ${keyError ? 'border-rose-400 bg-rose-50' : 'border-slate-200 focus:border-slate-400'}
+                    `}
+                  />
+                  
+                  {keyError && (
+                    <div className="mt-3 flex items-center gap-2 text-rose-600 text-sm">
+                      <AlertTriangle size={16} />
+                      授权码错误，请重新输入
+                    </div>
+                  )}
+                  
+                  <button
+                    onClick={handleVerifyAndStart}
+                    className="mt-6 w-full bg-slate-900 text-white py-3.5 rounded-2xl font-bold hover:bg-slate-800 transition-all"
+                  >
+                    验证并开始
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       );
     }
@@ -197,7 +223,7 @@ const App: React.FC = () => {
               
               <div className="h-2 w-full bg-slate-100 rounded-full overflow-hidden">
                 <div 
-                  className="h-full bg-slate-900 transition-all duration-300 ease-out"
+                  className="h-full bg-slate-900 rounded-full transition-all duration-300"
                   style={{ width: `${progress}%` }}
                 />
               </div>
@@ -224,15 +250,13 @@ const App: React.FC = () => {
                     ${answers[currentQ.id] === opt.id 
                       ? 'bg-slate-900 border-slate-900 text-white shadow-md' 
                       : 'bg-white border-slate-200 text-slate-700 hover:border-slate-400 active:scale-[0.98]'
-                    }
-                  `}
+                    }`}
                 >
                   <div className="flex items-start gap-3">
-                    <span className={`
-                      flex-shrink-0 w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold border
+                    <span className={`w-7 h-7 rounded-full flex items-center justify-center text-sm font-bold shrink-0 mt-0.5
                       ${answers[currentQ.id] === opt.id 
-                        ? 'border-white bg-white text-slate-900' 
-                        : 'border-slate-300 text-slate-400 group-hover:border-slate-400'
+                        ? 'bg-white/20 text-white' 
+                        : 'bg-slate-100 text-slate-700 group-hover:bg-slate-200'
                       }
                     `}>
                       {opt.id}
@@ -245,7 +269,7 @@ const App: React.FC = () => {
 
             <button 
               onClick={handlePrevious}
-              className="mt-10 px-6 py-2.5 bg-white border border-slate-200 rounded-full text-slate-500 text-sm font-medium hover:bg-slate-50 hover:text-slate-900 hover:border-slate-300 transition-all shadow-sm flex items-center gap-1.5"
+              className="mt-10 px-6 py-2.5 bg-white border border-slate-200 rounded-xl text-slate-600 hover:border-slate-300 transition-all shadow-sm flex items-center gap-1.5"
             >
               <ChevronLeft size={16} /> 返回上一题
             </button>
@@ -260,8 +284,8 @@ const App: React.FC = () => {
           <div className="animate-spin text-slate-900 mb-4">
             <RotateCcw size={48} />
           </div>
-          <h2 className="text-xl font-medium">正在生成决策报告...</h2>
-          <p className="text-slate-400 text-sm mt-2">综合情绪、家庭、风险与结构维度</p>
+          <h2 className="text-xl font-medium">正在生成测评报告...</h2>
+          <p className="text-slate-400 text-sm mt-2">综合现金跑道、变现速度、执行系统与回撤边界</p>
         </div>
       );
     }
@@ -273,33 +297,32 @@ const App: React.FC = () => {
       let ResultIcon = Clock;
       if (resultData.type === 'HIGH_RISK') ResultIcon = ShieldAlert;
       if (resultData.type === 'STRATEGIC_RESIGNATION') ResultIcon = CheckCircle2;
-      if (resultData.type === 'PREPARATION_NEEDED') ResultIcon = AlertTriangle;
+      if (resultData.type === 'PREPARATION_NEEDED') ResultIcon = Clock;
 
       return (
-        <div className="min-h-screen bg-slate-50 pb-10">
-          {/* Result Header Card */}
-          <div className="bg-white p-6 pb-10 shadow-sm rounded-b-[2.5rem] relative overflow-hidden">
-            <div className={`absolute top-0 left-0 w-full h-2 ${content.bgColor.replace('bg-', 'bg-opacity-50 bg-')}`}></div>
-            
+        <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white pb-16">
+          {/* Header */}
+          <div className="pt-12 pb-10 px-6">
             <div className="max-w-md mx-auto">
-               <div className="text-center mt-4">
-                  <div className={`mx-auto w-20 h-20 rounded-full ${content.bgColor} flex items-center justify-center mb-4`}>
+              <div className={`rounded-3xl border ${content.borderColor} ${content.bgColor} p-8 shadow-lg`}>
+                <div className="flex flex-col items-center text-center">
+                  <div className={`w-16 h-16 rounded-2xl bg-white shadow-md flex items-center justify-center mb-4`}>
                     <ResultIcon className={`w-10 h-10 ${content.color}`} />
                   </div>
                   <h1 className={`text-2xl font-bold mb-1 ${content.color}`}>
                     {content.title}
                   </h1>
                   <p className="text-slate-400 text-sm font-medium">
-                    风险指数评分: <span className="text-slate-900 font-bold text-lg">{scores.total}</span> / 60
+                    总风险分: <span className="text-slate-900 font-bold text-lg">{scores.total}</span> / 60
                   </p>
                </div>
 
                {/* Score Dashboard */}
                <div className="grid grid-cols-2 gap-3 mt-8">
-                 <ScoreCard label="情绪干扰" score={scores.emotion} max={15} highThreshold={11} icon={<TrendingUp size={16}/>} />
-                 <ScoreCard label="家庭约束" score={scores.family} max={12} highThreshold={9} icon={<Home size={16}/>} />
-                 <ScoreCard label="底盘风险" score={scores.risk} max={12} highThreshold={9} icon={<ShieldAlert size={16}/>} />
-                 <ScoreCard label="后续结构" score={scores.structure} max={9} highThreshold={7} icon={<Layout size={16}/>} />
+                 <ScoreCard label="现金跑道" score={scores.cash} max={18} highThreshold={13} icon={<Home size={16}/>} />
+                 <ScoreCard label="变现速度" score={scores.income} max={18} highThreshold={13} icon={<TrendingUp size={16}/>} />
+                 <ScoreCard label="执行系统" score={scores.execution} max={15} highThreshold={11} icon={<Layout size={16}/>} />
+                 <ScoreCard label="回撤风险" score={scores.retreat} max={9} highThreshold={7} icon={<ShieldAlert size={16}/>} />
                </div>
             </div>
           </div>
@@ -318,121 +341,38 @@ const App: React.FC = () => {
               </div>
             </div>
 
-            {/* Action Bar */}
-            <div className="space-y-3">
-               <button 
-                  onClick={() => {
-                    setKeyError(false);
-                    setLicenseKey('');
-                    // Only show modal, don't change step yet to avoid flash
-                    setShowAuthModal(true);
-                  }}
-                  className="w-full bg-white border border-slate-200 text-slate-600 py-3 rounded-xl font-medium hover:bg-slate-50 flex items-center justify-center gap-2"
-                >
-                  <RotateCcw size={18} /> 重新测评
-                </button>
-                <p className="text-center text-xs text-slate-300 mt-4">
-                  建议截屏保存结果，作为决策参考
-                </p>
+            {/* Actions */}
+            <div className="flex flex-col gap-3">
+              <button
+                onClick={() => {
+                  setCurrentStep('welcome');
+                  setCurrentQuestionIndex(0);
+                  setAnswers({});
+                  setLicenseKey('');
+                }}
+                className="w-full py-3.5 rounded-2xl bg-slate-900 text-white font-bold hover:bg-slate-800 transition-all flex items-center justify-center gap-2"
+              >
+                <RotateCcw size={18} /> 重新测一次
+              </button>
+              
+              <button
+                onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+                className="w-full py-3.5 rounded-2xl bg-white border border-slate-200 text-slate-700 font-bold hover:border-slate-300 transition-all flex items-center justify-center gap-2"
+              >
+                <ChevronRight size={18} /> 回到顶部
+              </button>
             </div>
           </div>
         </div>
       );
     }
+
+    return null;
   };
 
-  return (
-    <>
-      {renderContent()}
-
-      {/* Global License Key Modal */}
-      {showAuthModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-6">
-          {/* Backdrop */}
-          <div 
-            className="absolute inset-0 bg-white/60 backdrop-blur-md transition-opacity duration-300"
-            onClick={() => setShowAuthModal(false)}
-          />
-          
-          {/* Modal Content */}
-          <div className="relative w-full max-w-[340px] bg-white rounded-[2rem] shadow-2xl shadow-slate-200/50 p-8 pt-10 transform transition-all animate-in fade-in zoom-in duration-300 border border-slate-100">
-            
-            <button 
-              onClick={() => setShowAuthModal(false)}
-              className="absolute top-5 right-5 text-slate-300 hover:text-slate-500 transition-colors"
-            >
-              <X size={18} />
-            </button>
-
-            {/* Minimalist Header */}
-            <div className="flex flex-col items-center mb-8">
-              <div className="w-8 h-8 rounded-full border border-slate-100 flex items-center justify-center mb-6 bg-slate-50">
-                 <div className="w-2 h-2 bg-slate-300 rounded-full" />
-              </div>
-              
-              <h3 className="text-lg font-medium text-slate-800 tracking-tight">进入测试前的一步确认</h3>
-            </div>
-
-            {/* Input Area */}
-            <div className="relative mb-6 space-y-3">
-              <input
-                type="text"
-                autoFocus
-                value={licenseKey}
-                onChange={(e) => {
-                  setLicenseKey(e.target.value.toUpperCase());
-                  if (keyError) setKeyError(false);
-                }}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter') handleVerifyAndStart();
-                }}
-                maxLength={8}
-                placeholder="访问码"
-                className={`w-full py-3 bg-slate-50 rounded-lg text-center font-mono text-base tracking-widest outline-none transition-all placeholder:font-sans placeholder:text-slate-300 placeholder:text-sm placeholder:tracking-normal
-                  ${keyError 
-                    ? 'bg-rose-50 text-rose-500 placeholder:text-rose-300' 
-                    : 'text-slate-800 focus:bg-slate-100 focus:ring-2 focus:ring-slate-100'
-                  }
-                `}
-              />
-              
-              {/* Subtle error message */}
-              {keyError && (
-                <div className="absolute w-full text-center top-full mt-1">
-                   <p className="text-[10px] text-rose-400 font-medium animate-pulse">
-                    无效的访问码
-                  </p>
-                </div>
-              )}
-            </div>
-
-            {/* Main Action */}
-            <button 
-              onClick={handleVerifyAndStart}
-              className="w-full bg-slate-900 text-white h-12 rounded-full text-sm font-medium hover:bg-slate-800 transition-all shadow-sm"
-            >
-              进入测试
-            </button>
-
-            {/* Minimalist Footer Link */}
-            <div className="mt-8 text-center">
-               <a 
-                 href="https://xhslink.com/m/qEOVGRClzt" 
-                 target="_blank" 
-                 rel="noopener noreferrer"
-                 className="inline-block text-[11px] text-slate-400 hover:text-slate-600 transition-colors border-b border-transparent hover:border-slate-200 pb-0.5"
-               >
-                 没有访问码？获取体验入口
-               </a>
-            </div>
-          </div>
-        </div>
-      )}
-    </>
-  );
+  return renderContent();
 };
 
-// Helper Component for the mini score dashboard
 const ScoreCard: React.FC<{
   label: string;
   score: number;
