@@ -160,10 +160,10 @@ const App: React.FC = () => {
           <h1 className="text-3xl font-bold text-center mb-4 text-slate-900">离职后果承受能力测评</h1>
 
           <p className="text-center text-slate-500 mb-10 leading-relaxed">
-           这是离职系列的第二部分。它不替你做决定，只帮助你判断：离职后的风险，是否在你可承受范围内。
+           我现在想离职，是基于现实判断，还是源于对现实的回避？
             <br />
             <br />
-            请按真实情况作答，别选你希望自己是的那种。
+            不讨论你该不该走，也不讨论你能不能扛住，只检查你现在想走的理由是否站得住。
           </p>
 
           <button
