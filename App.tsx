@@ -17,10 +17,10 @@ import {
   X
 } from 'lucide-react';
 
-/**
- * 注意：类型定义必须放在 JSX return 之外（文件顶层），
- * 否则会被当成 JSX 文本解析，出现 “Expected } but found :”
- */
+/* =====================
+   ScoreCard Component
+===================== */
+
 type ScoreCardProps = {
   label: string;
   score: number;
@@ -56,6 +56,10 @@ function ScoreCard({ label, score, max, highThreshold, icon }: ScoreCardProps) {
   );
 }
 
+/* =====================
+        App
+===================== */
+
 const App: React.FC = () => {
   const [currentStep, setCurrentStep] = useState<'welcome' | 'quiz' | 'analyzing' | 'result'>(
     'welcome'
@@ -68,8 +72,9 @@ const App: React.FC = () => {
 
   const progress = ((currentQuestionIndex + 1) / QUESTIONS.length) * 100;
 
+  /* ---------- Access Code Check ---------- */
   const handleVerifyAndStart = () => {
-    if (licenseKey.trim().toUpperCase() !== 'Q3H4') {
+    if (licenseKey.trim().toUpperCase() !== 'WY08') {
       setKeyError(true);
       return;
     }
@@ -111,6 +116,7 @@ const App: React.FC = () => {
     }
   }, [currentStep]);
 
+  /* ---------- Scoring ---------- */
   const resultData = useMemo(() => {
     if (currentStep !== 'result') return null;
 
@@ -127,7 +133,6 @@ const App: React.FC = () => {
     QUESTIONS.forEach((q) => {
       const answer = answers[q.id];
       if (!answer) return;
-
       const points = pointsMap[answer];
       scores.total += points;
       scores[q.sectionId] += points;
@@ -147,23 +152,26 @@ const App: React.FC = () => {
     return { type: resultType, content: RESULTS[resultType], scores };
   }, [answers, currentStep]);
 
+  /* =====================
+        Render
+===================== */
+
   if (currentStep === 'welcome') {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center p-6 bg-gradient-to-br from-slate-50 to-slate-100 text-slate-800">
-        <div className="max-w-md w-full bg-white rounded-3xl shadow-xl p-8 border border-slate-100 relative overflow-hidden">
+        <div className="max-w-md w-full bg-white rounded-3xl shadow-xl p-8 border border-slate-100">
           <div className="flex justify-center mb-6">
             <div className="w-16 h-16 bg-indigo-100 rounded-2xl flex items-center justify-center text-indigo-600">
               <BrainCircuit size={32} />
             </div>
           </div>
 
-          <h1 className="text-3xl font-bold text-center mb-4 text-slate-900">离职后生存与回撤测评</h1>
+          <h1 className="text-3xl font-bold text-center mb-4 text-slate-900">
+            离职后生存与回撤测评
+          </h1>
 
           <p className="text-center text-slate-500 mb-10 leading-relaxed">
             只讨论走之后你能不能扛得住——现金跑道、变现速度、执行系统、回撤边界。
-            <br />
-            <br />
-            请按真实情况作答，别选你希望自己是的那种。
           </p>
 
           <button
@@ -171,54 +179,61 @@ const App: React.FC = () => {
               setShowAuthModal(true);
               setKeyError(false);
             }}
-            className="w-full bg-slate-900 text-white py-4 rounded-2xl font-bold text-lg hover:bg-slate-800 transition-all shadow-lg flex items-center justify-center gap-2 group"
+            className="w-full bg-slate-900 text-white py-4 rounded-2xl font-bold text-lg hover:bg-slate-800 transition-all shadow-lg flex items-center justify-center gap-2"
           >
-            开始测评
-            <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+            开始测评 <ArrowRight className="w-5 h-5" />
           </button>
-
-          <div className="mt-6 text-xs text-center text-slate-400">测评时间约 3-5 分钟 · 结果仅供参考</div>
         </div>
 
+        {/* ---------- Access Modal ---------- */}
         {showAuthModal && (
-          <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-            <div className="w-full max-w-md bg-white rounded-3xl shadow-2xl border border-slate-100 overflow-hidden relative">
+          <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+            <div className="w-full max-w-lg bg-white rounded-[28px] shadow-2xl relative">
               <button
                 onClick={() => setShowAuthModal(false)}
-                className="absolute top-4 right-4 p-2 rounded-xl hover:bg-slate-100 transition-colors"
+                className="absolute top-5 right-5 w-9 h-9 rounded-full hover:bg-slate-100 flex items-center justify-center"
               >
-                <X size={18} className="text-slate-500" />
+                <X size={18} />
               </button>
 
-              <div className="p-8">
-                <h2 className="text-xl font-bold text-slate-900 mb-2">请输入授权码</h2>
-                <p className="text-sm text-slate-500 mb-6">仅限购买用户使用</p>
+              <div className="p-8 sm:p-10">
+                <h2 className="text-2xl font-extrabold text-slate-900">
+                  进入测试前的一步确认
+                </h2>
 
-                <input
-                  value={licenseKey}
-                  onChange={(e) => {
-                    setLicenseKey(e.target.value);
-                    setKeyError(false);
-                  }}
-                  placeholder="例如：Q3H4"
-                  className={`w-full px-4 py-3 rounded-2xl border text-lg font-mono tracking-wider outline-none transition-colors ${
-                    keyError ? 'border-rose-400 bg-rose-50' : 'border-slate-200 focus:border-slate-400'
-                  }`}
-                />
+                <div className="mt-6">
+                  <input
+                    value={licenseKey}
+                    onChange={(e) => {
+                      setLicenseKey(e.target.value);
+                      setKeyError(false);
+                    }}
+                    placeholder="访问码"
+                    className={`w-full h-14 px-5 rounded-2xl border text-base outline-none transition-colors ${
+                      keyError
+                        ? 'border-rose-400 bg-rose-50'
+                        : 'border-slate-200 focus:border-slate-400 bg-white'
+                    }`}
+                  />
 
-                {keyError && (
-                  <div className="mt-3 flex items-center gap-2 text-rose-600 text-sm">
-                    <AlertTriangle size={16} />
-                    授权码错误，请重新输入
-                  </div>
-                )}
+                  {keyError && (
+                    <div className="mt-3 flex items-center gap-2 text-rose-600 text-sm">
+                      <AlertTriangle size={16} />
+                      访问码错误，请重新输入
+                    </div>
+                  )}
+                </div>
 
                 <button
                   onClick={handleVerifyAndStart}
-                  className="mt-6 w-full bg-slate-900 text-white py-3.5 rounded-2xl font-bold hover:bg-slate-800 transition-all"
+                  className="mt-7 w-full h-14 rounded-2xl bg-slate-900 text-white text-base font-bold hover:bg-slate-800 transition-all"
                 >
-                  验证并开始
+                  进入测试
                 </button>
+
+                <div className="mt-4 text-center text-sm text-slate-400">
+                  没有访问码？获取体验入口
+                </div>
               </div>
             </div>
           </div>
@@ -228,65 +243,42 @@ const App: React.FC = () => {
   }
 
   if (currentStep === 'quiz') {
-    const currentQ = QUESTIONS[currentQuestionIndex];
+    const q = QUESTIONS[currentQuestionIndex];
 
     return (
       <div className="min-h-screen flex flex-col bg-slate-50">
-        <div className="sticky top-0 bg-white/80 backdrop-blur-md z-10 px-6 py-4 border-b border-slate-100">
-          <div className="max-w-md mx-auto w-full">
-            <div className="flex items-center justify-end mb-3">
-              <span className="text-xs font-medium text-slate-400">
-                {currentQuestionIndex + 1} / {QUESTIONS.length}
-              </span>
+        <div className="sticky top-0 bg-white/80 backdrop-blur-md px-6 py-4 border-b">
+          <div className="max-w-md mx-auto">
+            <div className="flex justify-end text-xs text-slate-400">
+              {currentQuestionIndex + 1} / {QUESTIONS.length}
             </div>
-
-            <div className="h-2 w-full bg-slate-100 rounded-full overflow-hidden">
-              <div
-                className="h-full bg-slate-900 rounded-full transition-all duration-300"
-                style={{ width: `${progress}%` }}
-              />
+            <div className="h-2 bg-slate-100 rounded-full overflow-hidden mt-2">
+              <div className="h-full bg-slate-900" style={{ width: `${progress}%` }} />
             </div>
           </div>
         </div>
 
-        <div className="flex-1 flex flex-col items-center p-6 max-w-md mx-auto w-full">
-          <div className="mt-2 mb-6 w-full">
-            <span className="inline-block px-3 py-1 bg-indigo-50 text-indigo-600 text-xs font-bold rounded-lg mb-4">
-              {currentQ.section}
-            </span>
-            <h2 className="text-2xl font-bold text-slate-900 leading-snug">{currentQ.text}</h2>
-          </div>
+        <div className="flex-1 p-6 max-w-md mx-auto">
+          <span className="inline-block px-3 py-1 bg-indigo-50 text-indigo-600 text-xs font-bold rounded-lg mb-4">
+            {q.section}
+          </span>
+          <h2 className="text-2xl font-bold mb-6">{q.text}</h2>
 
-          <div className="w-full space-y-3">
-            {currentQ.options.map((opt) => (
+          <div className="space-y-3">
+            {q.options.map((opt) => (
               <button
                 key={opt.id}
                 onClick={() => handleAnswer(opt.id)}
-                className={`w-full text-left p-5 rounded-2xl border transition-all duration-200 group ${
-                  answers[currentQ.id] === opt.id
-                    ? 'bg-slate-900 border-slate-900 text-white shadow-md'
-                    : 'bg-white border-slate-200 text-slate-700 hover:border-slate-400 active:scale-[0.98]'
-                }`}
+                className="w-full text-left p-5 rounded-2xl border bg-white hover:border-slate-400"
               >
-                <div className="flex items-start gap-3">
-                  <span
-                    className={`w-7 h-7 rounded-full flex items-center justify-center text-sm font-bold shrink-0 mt-0.5 ${
-                      answers[currentQ.id] === opt.id
-                        ? 'bg-white/20 text-white'
-                        : 'bg-slate-100 text-slate-700 group-hover:bg-slate-200'
-                    }`}
-                  >
-                    {opt.id}
-                  </span>
-                  <span className="leading-relaxed">{opt.text}</span>
-                </div>
+                <strong className="mr-2">{opt.id}.</strong> {opt.text}
               </button>
             ))}
           </div>
 
           <button
             onClick={handlePrevious}
-            className="mt-10 px-6 py-2.5 bg-white border border-slate-200 rounded-xl text-slate-600 hover:border-slate-300 transition-all shadow-sm flex items-center gap-1.5"
+            className="mt-10 px-6 py-2.5 bg-white border rounded-xl text-slate-600"
           >
             <ChevronLeft size={16} /> 返回上一题
           </button>
@@ -297,84 +289,49 @@ const App: React.FC = () => {
 
   if (currentStep === 'analyzing') {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-slate-50 text-slate-800">
-        <div className="animate-spin text-slate-900 mb-4">
-          <RotateCcw size={48} />
-        </div>
-        <h2 className="text-xl font-medium">正在生成测评报告...</h2>
-        <p className="text-slate-400 text-sm mt-2">综合现金跑道、变现速度、执行系统与回撤边界</p>
+      <div className="min-h-screen flex flex-col items-center justify-center">
+        <RotateCcw className="animate-spin mb-4" size={48} />
+        正在生成测评结果…
       </div>
     );
   }
 
   if (currentStep === 'result' && resultData) {
     const { content, scores } = resultData;
-
-    let ResultIcon = Clock;
-    if (resultData.type === 'HIGH_RISK') ResultIcon = ShieldAlert;
-    if (resultData.type === 'STRATEGIC_RESIGNATION') ResultIcon = CheckCircle2;
+    let Icon = Clock;
+    if (resultData.type === 'HIGH_RISK') Icon = ShieldAlert;
+    if (resultData.type === 'STRATEGIC_RESIGNATION') Icon = CheckCircle2;
 
     return (
-      <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white pb-16">
-        <div className="pt-12 pb-10 px-6">
-          <div className="max-w-md mx-auto">
-            <div className={`rounded-3xl border ${content.borderColor} ${content.bgColor} p-8 shadow-lg`}>
-              <div className="flex flex-col items-center text-center">
-                <div className="w-16 h-16 rounded-2xl bg-white shadow-md flex items-center justify-center mb-4">
-                  <ResultIcon className={`w-10 h-10 ${content.color}`} />
-                </div>
+      <div className="min-h-screen bg-slate-50 p-6">
+        <div className="max-w-md mx-auto bg-white rounded-3xl p-8 shadow">
+          <Icon className={`mx-auto mb-4 ${content.color}`} size={48} />
+          <h1 className={`text-2xl font-bold text-center mb-2 ${content.color}`}>
+            {content.title}
+          </h1>
+          <p className="text-center text-slate-500 mb-6">
+            总分 {scores.total} / 60
+          </p>
 
-                <h1 className={`text-2xl font-bold mb-1 ${content.color}`}>{content.title}</h1>
-
-                <p className="text-slate-400 text-sm font-medium">
-                  总风险分: <span className="text-slate-900 font-bold text-lg">{scores.total}</span> / 60
-                </p>
-              </div>
-
-              <div className="grid grid-cols-2 gap-3 mt-8">
-                <ScoreCard label="现金跑道" score={scores.cash} max={18} highThreshold={13} icon={<Home size={16} />} />
-                <ScoreCard label="变现速度" score={scores.income} max={18} highThreshold={13} icon={<TrendingUp size={16} />} />
-                <ScoreCard label="执行系统" score={scores.execution} max={15} highThreshold={11} icon={<Layout size={16} />} />
-                <ScoreCard label="回撤风险" score={scores.retreat} max={9} highThreshold={7} icon={<ShieldAlert size={16} />} />
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div className="max-w-md mx-auto px-6 -mt-4 relative z-10">
-          <div className="bg-white rounded-2xl shadow-lg border border-slate-100 p-6 mb-6">
-            <h3 className="font-bold text-slate-900 mb-4 flex items-center gap-2">
-              <span className="w-1 h-6 bg-slate-900 rounded-full" />
-              深度解读
-            </h3>
-
-            <div className="space-y-4 text-slate-600 text-sm leading-7 text-justify">
-              {content.description.map((paragraph, idx) => (
-                <p key={idx}>{paragraph}</p>
-              ))}
-            </div>
+          <div className="grid grid-cols-2 gap-3 mb-6">
+            <ScoreCard label="现金跑道" score={scores.cash} max={18} highThreshold={13} icon={<Home size={16} />} />
+            <ScoreCard label="变现速度" score={scores.income} max={18} highThreshold={13} icon={<TrendingUp size={16} />} />
+            <ScoreCard label="执行系统" score={scores.execution} max={15} highThreshold={11} icon={<Layout size={16} />} />
+            <ScoreCard label="回撤风险" score={scores.retreat} max={9} highThreshold={7} icon={<ShieldAlert size={16} />} />
           </div>
 
-          <div className="flex flex-col gap-3">
-            <button
-              onClick={() => {
-                setCurrentStep('welcome');
-                setCurrentQuestionIndex(0);
-                setAnswers({});
-                setLicenseKey('');
-              }}
-              className="w-full py-3.5 rounded-2xl bg-slate-900 text-white font-bold hover:bg-slate-800 transition-all flex items-center justify-center gap-2"
-            >
-              <RotateCcw size={18} /> 重新测一次
-            </button>
-
-            <button
-              onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-              className="w-full py-3.5 rounded-2xl bg-white border border-slate-200 text-slate-700 font-bold hover:border-slate-300 transition-all flex items-center justify-center gap-2"
-            >
-              <ChevronRight size={18} /> 回到顶部
-            </button>
+          <div className="space-y-4 text-sm text-slate-600">
+            {content.description.map((p, i) => (
+              <p key={i}>{p}</p>
+            ))}
           </div>
+
+          <button
+            onClick={() => setCurrentStep('welcome')}
+            className="mt-8 w-full h-12 rounded-xl bg-slate-900 text-white font-bold"
+          >
+            重新测一次
+          </button>
         </div>
       </div>
     );
