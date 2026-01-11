@@ -373,20 +373,31 @@ const App: React.FC = () => {
   return renderContent();
 };
 
-const ScoreCard: React.FC<{
+type ScoreCardProps = {
   label: string;
   score: number;
   max: number;
   highThreshold: number;
   icon: React.ReactNode;
-}> = ({ label, score, max, highThreshold, icon }) => {
+};
+
+function ScoreCard({ label, score, max, highThreshold, icon }: ScoreCardProps) {
   const isHighRisk = score >= highThreshold;
-  
+
   return (
-    <div className={`p-3 rounded-xl border ${isHighRisk ? 'bg-rose-50 border-rose-100' : 'bg-slate-50 border-slate-100'} flex flex-col justify-between`}>
-      <div className={`flex items-center gap-2 text-xs font-medium ${isHighRisk ? 'text-rose-600' : 'text-slate-500'}`}>
+    <div
+      className={`p-3 rounded-xl border ${
+        isHighRisk ? 'bg-rose-50 border-rose-100' : 'bg-slate-50 border-slate-100'
+      } flex flex-col justify-between`}
+    >
+      <div
+        className={`flex items-center gap-2 text-xs font-medium ${
+          isHighRisk ? 'text-rose-600' : 'text-slate-500'
+        }`}
+      >
         {icon} {label}
       </div>
+
       <div className="mt-2 flex items-end gap-1">
         <span className={`text-xl font-bold ${isHighRisk ? 'text-rose-700' : 'text-slate-800'}`}>
           {score}
@@ -395,6 +406,7 @@ const ScoreCard: React.FC<{
       </div>
     </div>
   );
-};
+}
+
 
 export default App;
