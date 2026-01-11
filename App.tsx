@@ -304,7 +304,7 @@ const App: React.FC = () => {
           <RotateCcw size={48} />
         </div>
         <h2 className="text-xl font-medium">正在生成测评报告...</h2>
-        <p className="text-slate-400 text-sm mt-2">综合现金跑道、变现速度、执行系统与回撤边界</p>
+        <p className="text-slate-400 text-sm mt-2">正在综合你的现实条件与应对能力</p>
       </div>
     );
   }
